@@ -30,4 +30,15 @@ int main(int argc , char * argv[]){
     }
 
     return 0;
+    void functionCall(string parameter){
+        if(compare(parameter, "write-through")){
+
+        }else if(compare(parameter, "write-allocate")){
+
+        }else if(compare(parameter, "no-write-allocate")){
+
+        }else if(compare(parameter, "write-back")){
+
+        }
+    }
 }
