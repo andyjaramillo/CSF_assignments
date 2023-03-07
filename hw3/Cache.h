@@ -18,12 +18,12 @@ class Cache{
   public:
      std::vector<Set> sets;
         Cache(int number_of_set, int number_of_blocks_in_set, int number_of_bytes_per_memory){
-            for(int i=0; i<(2^number_of_set);i++){
+            for(int i=0; i<number_of_set;i++){
                 Set set;
-                for(int i=0; i<(2^number_of_blocks_in_set);i++){
+                for(int i=0; i<number_of_blocks_in_set;i++){
                     Slot s;
                     s.tag = 0;
-                    s.index =0;
+                    s.index =i;
                     s.offset = 0;
                     s.load_ts = 0;
                     s.access_ts =0;

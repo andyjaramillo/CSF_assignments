@@ -26,13 +26,13 @@ std::vector<std::string> to_Vector(std::string s){
 }
 
 //a store writes to the cache as well as to memory
-int write_through(Cache ca, Slot s, string buffer){
+int write_through(Cache ca, Slot s, std::string buffer){
 
     return 0;
 }
 
 //a cache miss during a store does not modify the cache
-int no_write_allocate(Cache ca, Slot s, string buffer){
+int no_write_allocate(Cache ca, Slot s, std::string buffer){
 
     return 0;
 }
