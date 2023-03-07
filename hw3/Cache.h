@@ -14,10 +14,14 @@
         std::vector<Slot> slots;
         };
 class Cache{
- 
+
   public:
+   int num_sets;
+ int num_slots;
      std::vector<Set> sets;
         Cache(int number_of_set, int number_of_blocks_in_set, int number_of_bytes_per_memory){
+            num_sets = number_of_set;
+            num_slots = number_of_blocks_in_set;
             for(int i=0; i<number_of_set;i++){
                 Set set;
                 for(int i=0; i<number_of_blocks_in_set;i++){
