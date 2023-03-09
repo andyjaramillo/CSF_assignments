@@ -1,38 +1,62 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include "cache_funcs.h"
 #include <unistd.h>
 #include <math.h>
+#include <cstring>
 using namespace std;
-bool string_compare(std::string one, std::string two){
-   bool different = false;
-    for(long unsigned i=0; i < one.length(); i++){
-        if(one[i] != two[i]){
-            different = true;
-        }
-    }
-    return different;
-}
- void writeMethod(string parameter , Slot * slot, Cache cache){
-        if(string_compare(parameter, "write-through")){
+
+
+    void writeMethod(std::string parameter , Slot * slot, Cache& cache){
+        if(parameter.compare("write-through") == 0){
             write_through(cache, slot);
-        }else if(string_compare(parameter, "write-allocate")){
-
-        }else if(string_compare(parameter, "no-write-allocate")){
+        }else if(parameter.compare("write-allocate")  == 0){
+            write_allocate(cache, slot);
+        }else if(parameter.compare("no-write-allocate") == 0){
             no_write_allocate(cache, slot);
-        }else if(string_compare(parameter, "write-back")){
-
+        }else if(parameter.compare("write-back")  == 0){
+            write_back(cache, slot);
         }
     }
+    void Load_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
+     if(slotExists(cache, s)){
+            //hit
+            writeMethod(second_string, s, cache);
+        }else{
+            //miss
+            writeMethod(first_string, s, cache);
+        }
+        
+}
+void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
+     int& total_store = return_total_Stores();
+     if(slotExists(cache, s)){
+            //hit
+           int& store_hit = return_store_Hits();
+           store_hit++;
+           total_store++;
+        }else{
+            //miss
+            int& store_miss = return_store_Misses();
+            store_miss++;
+            total_store++;
+           Load_hitOrMiss(cache,s,first_string,second_string);
+        }
+        
+}
+
     void print_Cache(Cache ca){
          for(int i=0; i<ca.num_sets; i++){
             for(int j=0; j< ca.num_slots; j++){
-                cout <<   ca.sets[i].slots[j].tag << " ";
+               if(ca.sets[i].slots[j].offset != 0 || ca.sets[i].slots[j].tag != 0){
+                    cout <<  ca.sets[i].slots[j].offset << " ";
+               }
                 
             }
-            cout << endl;
+          //  cout << endl;
         }
     }
 int main(int argc , char * argv[]){
@@ -81,9 +105,19 @@ int main(int argc , char * argv[]){
         slot.tag = tag;
         slot.index = index;
         slot.offset = offset;
+   //  cout << slot.offset << " ";
+        string action = line_as_vector[0];
+        if(action == "l"){
+            Load_hitOrMiss(cache, &slot, argv[4], argv[5]);
+        }else if(action == "s"){
+            //check if it is a hit or miss because we want to see if we can read from memory
+            Store_hitOrMiss(cache, &slot, argv[4], argv[5]);
+           
+        }
+        
         writeMethod(argv[4], &slot, cache);
 
-        writeMethod(argv[5], &slot, cache);
+      //  writeMethod(argv[5], &slot, cache);
         
         /*
         reading next line in the file
@@ -92,7 +126,7 @@ int main(int argc , char * argv[]){
          
      
     }
-  //  print_Cache(cache);
+   print_Cache(cache);
     return 0;
    
 }
