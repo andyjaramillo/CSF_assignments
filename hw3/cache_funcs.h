@@ -27,12 +27,13 @@ bool slotExists(Cache& ca, Slot *s);
 //checks if cache is full
 bool isCacheFull(Cache& ca, Slot * s);
 
-
+void evictionFunction(Cache& ca, Slot * s);
 
 //returning simulator results
 int& return_total_Loads();
 int& return_total_Stores();
 int& return_load_Misses();
+int& return_load_Hits();
 int& return_store_Hits();
 int& return_store_Misses();
 int& return_total_cycles();

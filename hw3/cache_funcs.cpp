@@ -33,6 +33,9 @@ int& return_total_Stores(){
 int& return_load_Misses(){
    return load_Misses; 
 }
+int& return_load_Hits(){
+    return load_Hits;
+}
 int& return_store_Hits(){
    return store_Hits; 
 }
@@ -88,6 +91,22 @@ bool isCacheFull(Cache& ca, Slot * s){
         return cache_is_full;
 }
 
+void evictionFunction(Cache& ca, Slot * s){
+    Set currentSet =  ca.sets[s->index];
+    uint32_t min = currentSet.slots[0].access_ts;
+    int index = 0;
+    for(long unsigned i=1; i< currentSet.slots.size(); i++){
+        if(min > currentSet.slots[i].access_ts){
+            min = currentSet.slots[i].access_ts;
+            index = i;
+        }
+    }
+    ca.sets[s->index].slots[index].tag = 0;
+    ca.sets[s->index].slots[index].offset = 0;
+
+}
+
+
 
 //a store writes to the cache as well as to memory
 void write_through(Cache& ca, Slot * s){
@@ -95,7 +114,13 @@ void write_through(Cache& ca, Slot * s){
     //     cout << i.first << " " << i.second; 
     // }
     // cout << endl;
-    
+    load_Hits++;
+    total_Loads++;
+    if(isCacheFull(ca,s)==true){
+        evictionFunction(ca,s);
+        return;
+    }
+    s->access_ts++;
     if(cache_map.count(s->tag)){
         Set currentSet =  ca.sets[s->index];
         for (long unsigned i=0; i < currentSet.slots.size(); i++)
@@ -136,11 +161,88 @@ void no_write_allocate(Cache ca, Slot * s){
 }
 
 void write_back(Cache ca, Slot * s){
-    write_through(ca,s);
+    load_Hits++;
+    total_Loads++;
+    if(isCacheFull(ca,s)==true){
+        if(s->dirty_bit==true){
+            evictionFunction(ca,s);
+            total_Stores++;
+        }else{
+            evictionFunction(ca,s);
+        }
+        return;
+    }
+    
+    s->access_ts++;
+    if(cache_map.count(s->tag)){
+        Set currentSet =  ca.sets[s->index];
+        for (long unsigned i=0; i < currentSet.slots.size(); i++)
+        {
+            Slot currentSlot = currentSet.slots[i];
+            if (currentSlot.tag == s->tag) {
+                currentSlot.offset = s->offset;
+                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                cache_map[s->tag] = s;
+                break;
+            }
+        }
+        return;
+    }else{
+        Set currentSet =  ca.sets[s->index];
+       for (long unsigned i=0; i < currentSet.slots.size(); i++)
+        {
+            Slot currentSlot = currentSet.slots[i];
+            if (currentSlot.tag == 0) {
+                currentSlot.tag = s->tag;
+                ca.sets[s->index].slots[i].tag = currentSlot.tag;
+                currentSlot.offset = s->offset;
+                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                cache_map.insert({s->tag, s});
+                break;
+            }
+        }
+        return;
+    }
     s->dirty_bit = true;
+
 }
 
 void write_allocate(Cache ca, Slot * s){
-    write_through(ca,s);
-    
+    load_Misses++;
+    total_Loads++;
+    if(isCacheFull(ca,s)==true){
+        evictionFunction(ca,s);
+        return;
+    }
+    s->access_ts++;
+    if(cache_map.count(s->tag)){
+        Set currentSet =  ca.sets[s->index];
+        for (long unsigned i=0; i < currentSet.slots.size(); i++)
+        {
+            Slot currentSlot = currentSet.slots[i];
+            if (currentSlot.tag == s->tag) {
+                currentSlot.offset = s->offset;
+                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                cache_map[s->tag] = s;
+                break;
+            }
+        }
+        return;
+    }else{
+        Set currentSet =  ca.sets[s->index];
+       for (long unsigned i=0; i < currentSet.slots.size(); i++)
+        {
+            Slot currentSlot = currentSet.slots[i];
+            if (currentSlot.tag == 0) {
+                currentSlot.tag = s->tag;
+                ca.sets[s->index].slots[i].tag = currentSlot.tag;
+                currentSlot.offset = s->offset;
+                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                cache_map.insert({s->tag, s});
+                break;
+            }
+        }
+        return;
+    }
+
 }

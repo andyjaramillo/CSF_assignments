@@ -7,8 +7,7 @@
         uint32_t tag;
         uint32_t index;
         uint32_t offset;
-        uint32_t load_ts,
-        access_ts;
+        uint32_t access_ts;
         bool dirty_bit;
         };
     struct Set {
@@ -30,7 +29,6 @@ class Cache{
                     s.tag = 0;
                     s.index =i;
                     s.offset = 0;
-                    s.load_ts = 0;
                     s.access_ts =0;
                     s.dirty_bit = false;
                     set.slots.push_back(s);

@@ -9,6 +9,8 @@
 #include <cstring>
 using namespace std;
 
+int& total_cycles = return_total_cycles();
+
 
     void writeMethod(std::string parameter , Slot * slot, Cache& cache){
         if(parameter.compare("write-through") == 0){
@@ -33,6 +35,7 @@ using namespace std;
 }
 void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
      int& total_store = return_total_Stores();
+     s->access_ts++;
      if(slotExists(cache, s)){
             //hit
            int& store_hit = return_store_Hits();
@@ -43,7 +46,13 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
             int& store_miss = return_store_Misses();
             store_miss++;
             total_store++;
-           Load_hitOrMiss(cache,s,first_string,second_string);
+            if(isCacheFull(cache, s)!=true){
+                 Load_hitOrMiss(cache,s,first_string,second_string);
+            }else{
+                evictionFunction(cache, s);
+            }
+            
+          
         }
         
 }
@@ -123,10 +132,25 @@ int main(int argc , char * argv[]){
         reading next line in the file
         */
         number_of_bytes= read(0, buffer, 15); 
-         
+         total_cycles++;
      
     }
-   print_Cache(cache);
+  // print_Cache(cache);
+  int& total_Loads = return_total_Loads();
+  int& total_stores = return_total_Stores();
+  int& load_hits = return_load_Hits();
+  int& load_misses = return_load_Misses();
+  int& store_hits = return_store_Hits();
+  int& store_misses = return_store_Misses();
+
+  cout << "Total loads: " << total_Loads << endl;
+  cout << "Total stores: " << total_stores << endl;
+  cout << "Load Hits: " << load_hits << endl;
+  cout << "Load misses: " << load_misses << endl;
+  cout << "Store hits: " << store_hits << endl;
+  cout << "Store misses: " << store_misses << endl;
+  cout << "Total cycles: " << total_cycles << endl;
+
     return 0;
    
 }
