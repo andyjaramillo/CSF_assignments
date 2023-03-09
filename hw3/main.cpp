@@ -72,10 +72,10 @@ int main(int argc , char * argv[]){
      char buffer[15] = {0};
     Cache cache(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
     int number_of_bytes= read(0, buffer, 15);
-    if(argc < 7){
-        cerr << "Missing File" << endl;
-        return 0;
-    }
+    // if(argc < 7){
+    //     cerr << "Missing File" << endl;
+    //     return 0;
+    // }
   
     while(number_of_bytes>=14){
         string line_as_string = convertToString(buffer, 15);
