@@ -23,33 +23,58 @@ int store_Misses =0;
 
 int Total_Cycles=0;
 
-
+int cache_timestamp = 0;
 
     void writeMethod(std::string parameter , Slot * slot, Cache& cache){
         if(parameter.compare("write-through") == 0){
             write_through(cache, slot);
-            load_Hits++;
+          
         }else if(parameter.compare("write-allocate")  == 0){
             write_allocate(cache, slot);
         }else if(parameter.compare("no-write-allocate") == 0){
             no_write_allocate(cache, slot);
-            load_Misses++;
+           
            
         }else if(parameter.compare("write-back")  == 0){
             write_back(cache, slot);
             if(slot->dirty_bit == true){
                 total_Stores++;
             }
-            load_Hits++;
+           
         }
     }
-    void Load_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
+    void Load_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string, int byte_size, std::string lru_or_fifo){
      if(slotExists(cache, s)){
             //hit
-            writeMethod(second_string, s, cache);
+            load_Hits++;
+            Total_Cycles++;
+             Set currentSet =  cache.sets[s->index];
+            for (long unsigned i=0; i < currentSet.slots.size(); i++)
+                 {
+            Slot currentSlot = currentSet.slots[i];
+            if (currentSlot.tag == s->tag) {
+                cache.sets[s->index].slots[i].access_ts++;           
+                break;
+                  }
+             }
+           // writeMethod(second_string, s, cache);
         }else{
             //miss
-            writeMethod(first_string, s, cache);
+            load_Misses++;
+            Total_Cycles += (100* (byte_size/4));
+            if(isCacheFull(cache, s) == true){
+                if(lru_or_fifo.compare("lru")){
+                    //To do 
+                }
+                // }else if(lru_or_fifo.compare("fifo")){
+                    
+                // }
+            }else{
+                //no eviction needed
+                
+                
+            }
+         //   writeMethod(first_string, s, cache);
         }
         
 }
@@ -65,7 +90,8 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
             store_Misses++;
            // total_store++;
             if(isCacheFull(cache, s)!=true){
-                 Load_hitOrMiss(cache,s,first_string,second_string);
+             //    Load_hitOrMiss(cache,s,first_string,second_string);
+
             }else{
                 evictionFunction(cache, s);
             }
@@ -78,8 +104,8 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
     void print_Cache(Cache ca){
          for(int i=0; i<ca.num_sets; i++){
             for(int j=0; j< ca.num_slots; j++){
-               if(ca.sets[i].slots[j].offset != 0 || ca.sets[i].slots[j].tag != 0){
-                    cout <<  ca.sets[i].slots[j].offset << " ";
+               if(ca.sets[i].slots[j].tag != 0){
+                    cout <<  ca.sets[i].slots[j].tag << " ";
                }
                 
             }
@@ -89,7 +115,9 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
 int main(int argc , char * argv[]){
      char buffer[15] = {0};
     Cache cache(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+   
     int number_of_bytes= read(0, buffer, 15);
+     cache_timestamp++;
     // if(argc < 7){
     //     cerr << "Missing File" << endl;
     //     return 0;
@@ -131,12 +159,11 @@ int main(int argc , char * argv[]){
         Slot slot;
         slot.tag = tag;
         slot.index = index;
-        slot.offset = offset;
    //  cout << slot.offset << " ";
         string action = line_as_vector[0];
         if(action == "l"){
             total_Loads++;
-            Load_hitOrMiss(cache, &slot, argv[4], argv[5]);
+            Load_hitOrMiss(cache, &slot, argv[4], argv[5], atoi(argv[3]), argv[6]);
         }else if(action == "s"){
             //check if it is a hit or miss because we want to see if we can read from memory
             total_Stores++;
@@ -152,7 +179,7 @@ int main(int argc , char * argv[]){
         reading next line in the file
         */
         number_of_bytes= read(0, buffer, 15); 
-         Total_Cycles++;
+         cache_timestamp++;
      
     }
   // print_Cache(cache);

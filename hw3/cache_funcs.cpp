@@ -29,11 +29,9 @@ std::vector<std::string> to_Vector(std::string s){
 }
 
 bool slotExists(Cache& ca, Slot *s){
-    Set currentSet =  ca.sets[s->index];
-        for (long unsigned i=0; i < currentSet.slots.size(); i++)
+        for (long unsigned i=0; i < ca.sets[s->index].slots.size(); i++)
         {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == s->tag) {
+            if (ca.sets[s->index].slots[i].tag == s->tag) {
                 return true;
             }
         }
@@ -44,7 +42,7 @@ bool isCacheFull(Cache& ca, Slot * s){
     bool cache_is_full = true;
     for(int i=0; i<ca.num_sets; i++){
             for(int j=0; j< ca.num_slots; j++){
-               if(ca.sets[i].slots[j].offset == 0 && ca.sets[i].slots[j].tag == 0){
+               if(ca.sets[i].slots[j].tag == 0){
                   cache_is_full = false;
                   return cache_is_full;
                }
@@ -64,12 +62,11 @@ void evictionFunction(Cache& ca, Slot * s){
             index = i;
         }
     }
-    ca.sets[s->index].slots[index].tag = 0;
-    ca.sets[s->index].slots[index].offset = 0;
+    ca.sets[s->index].slots[index].tag = s->tag;
 
 }
 
-void write_no_dirty(Cache& ca , Slot * s){
+void write_no_dirty_hit(Cache& ca , Slot * s){
      if(isCacheFull(ca,s)==true){
         evictionFunction(ca,s);
         return;
@@ -81,14 +78,23 @@ void write_no_dirty(Cache& ca , Slot * s){
         {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == s->tag) {
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                ca.sets[s->index].slots[i].tag = currentSlot.tag;
                 cache_map[s->tag] = s;
                 break;
             }
         }
         return;
-    }else{
+    }
+    
+
+}
+
+void write_no_dirty_miss(Cache& ca , Slot * s){
+     if(isCacheFull(ca,s)==true){
+        evictionFunction(ca,s);
+        return;
+    }
+    s->access_ts++;
         Set currentSet =  ca.sets[s->index];
        for (long unsigned i=0; i < currentSet.slots.size(); i++)
         {
@@ -96,14 +102,12 @@ void write_no_dirty(Cache& ca , Slot * s){
             if (currentSlot.tag == 0) {
                 currentSlot.tag = s->tag;
                 ca.sets[s->index].slots[i].tag = currentSlot.tag;
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
                 cache_map.insert({s->tag, s});
                 break;
             }
         }
         return;
-    }
+    
 
 }
 
@@ -115,7 +119,7 @@ void write_through(Cache& ca, Slot * s){
     // cout << endl;
    // load_Hits++;
   //  total_Loads++;
-    write_no_dirty(ca, s);
+    write_no_dirty_hit(ca, s);
     
 }
 
@@ -144,8 +148,7 @@ void write_back(Cache ca, Slot * s){
         {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == s->tag) {
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                ca.sets[s->index].slots[i].tag = currentSlot.tag;
                 cache_map[s->tag] = s;
                 break;
             }
@@ -157,10 +160,7 @@ void write_back(Cache ca, Slot * s){
         {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == 0) {
-                currentSlot.tag = s->tag;
-                ca.sets[s->index].slots[i].tag = currentSlot.tag;
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
+                ca.sets[s->index].slots[i].tag = s->tag;
                 cache_map.insert({s->tag, s});
                 break;
             }
@@ -173,5 +173,7 @@ void write_back(Cache ca, Slot * s){
 
 void write_allocate(Cache ca, Slot * s){
   
-    write_no_dirty(ca, s);
+    write_no_dirty_miss(ca, s);
 }
+
+
