@@ -10,7 +10,7 @@ std::string convertToString(char * char_array, int size);
 std::vector<std::string> to_Vector(std::string s);
 
 //a store writes to the cache as well as to memory
-void write_through(Cache& ca, Slot * s);
+void write_through(Cache& ca, Slot * s, int timestamp);
 
 //a cache miss during a store does not modify the cache
 void no_write_allocate(Cache ca, Slot * s);
@@ -27,8 +27,9 @@ bool slotExists(Cache& ca, Slot *s);
 //checks if cache is full
 bool isCacheFull(Cache& ca, Slot * s);
 
-void evictionFunction(Cache& ca, Slot * s);
-void write_no_dirty(Cache& ca , Slot * s);
+void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size);
+void write_no_dirty_hit(Cache& ca , Slot * s, int timestamp);
+void write_no_dirty_miss(Cache& ca , Slot * s);
 
 
 

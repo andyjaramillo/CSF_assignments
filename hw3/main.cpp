@@ -21,13 +21,16 @@ int store_Hits =0;
 
 int store_Misses =0;
 
-int Total_Cycles=0;
+
 
 int cache_timestamp = 0;
 
+
+
+
     void writeMethod(std::string parameter , Slot * slot, Cache& cache){
         if(parameter.compare("write-through") == 0){
-            write_through(cache, slot);
+            write_through(cache, slot, cache_timestamp);
           
         }else if(parameter.compare("write-allocate")  == 0){
             write_allocate(cache, slot);
@@ -47,13 +50,13 @@ int cache_timestamp = 0;
      if(slotExists(cache, s)){
             //hit
             load_Hits++;
-            Total_Cycles++;
+            cache.total_cycles++;
              Set currentSet =  cache.sets[s->index];
             for (long unsigned i=0; i < currentSet.slots.size(); i++)
                  {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == s->tag) {
-                cache.sets[s->index].slots[i].access_ts++;           
+                cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
                 break;
                   }
              }
@@ -61,17 +64,18 @@ int cache_timestamp = 0;
         }else{
             //miss
             load_Misses++;
-            Total_Cycles += (100* (byte_size/4));
+            cache.total_cycles += cache.byte_size_calculation;
             if(isCacheFull(cache, s) == true){
                 if(lru_or_fifo.compare("lru")){
                     //To do 
+                    evictionFunction(cache, s, cache_timestamp, byte_size);
                 }
                 // }else if(lru_or_fifo.compare("fifo")){
                     
                 // }
             }else{
                 //no eviction needed
-                
+                write_through(cache,s,cache_timestamp);
                 
             }
          //   writeMethod(first_string, s, cache);
@@ -93,7 +97,7 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
              //    Load_hitOrMiss(cache,s,first_string,second_string);
 
             }else{
-                evictionFunction(cache, s);
+               // evictionFunction(cache, s);
             }
             
           
@@ -123,7 +127,7 @@ int main(int argc , char * argv[]){
     //     return 0;
     // }
   
-    while(number_of_bytes>=14){
+    while(number_of_bytes!=0){
         string line_as_string = convertToString(buffer, 15);
         vector<string> line_as_vector = to_Vector(line_as_string);
         /*
@@ -191,7 +195,7 @@ int main(int argc , char * argv[]){
   cout << "Load misses: " << load_Misses << endl;
   cout << "Store hits: " << store_Hits << endl;
   cout << "Store misses: " << store_Misses << endl;
-  cout << "Total cycles: " << Total_Cycles << endl;
+  cout << "Total cycles: " << cache.total_cycles << endl;
 
     return 0;
    
