@@ -9,18 +9,38 @@
 #include <cstring>
 using namespace std;
 
-int& total_cycles = return_total_cycles();
+int total_Loads = 0;
+
+int total_Stores = 0;
+
+int load_Hits = 0;
+
+int load_Misses = 0;
+
+int store_Hits =0;
+
+int store_Misses =0;
+
+int Total_Cycles=0;
+
 
 
     void writeMethod(std::string parameter , Slot * slot, Cache& cache){
         if(parameter.compare("write-through") == 0){
             write_through(cache, slot);
+            load_Hits++;
         }else if(parameter.compare("write-allocate")  == 0){
             write_allocate(cache, slot);
         }else if(parameter.compare("no-write-allocate") == 0){
             no_write_allocate(cache, slot);
+            load_Misses++;
+           
         }else if(parameter.compare("write-back")  == 0){
             write_back(cache, slot);
+            if(slot->dirty_bit == true){
+                total_Stores++;
+            }
+            load_Hits++;
         }
     }
     void Load_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
@@ -34,18 +54,16 @@ int& total_cycles = return_total_cycles();
         
 }
 void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
-     int& total_store = return_total_Stores();
+    //  int& total_store = return_total_Stores();
      s->access_ts++;
      if(slotExists(cache, s)){
             //hit
-           int& store_hit = return_store_Hits();
-           store_hit++;
-           total_store++;
+           store_Hits++;
+           //total_store++;
         }else{
             //miss
-            int& store_miss = return_store_Misses();
-            store_miss++;
-            total_store++;
+            store_Misses++;
+           // total_store++;
             if(isCacheFull(cache, s)!=true){
                  Load_hitOrMiss(cache,s,first_string,second_string);
             }else{
@@ -117,9 +135,11 @@ int main(int argc , char * argv[]){
    //  cout << slot.offset << " ";
         string action = line_as_vector[0];
         if(action == "l"){
+            total_Loads++;
             Load_hitOrMiss(cache, &slot, argv[4], argv[5]);
         }else if(action == "s"){
             //check if it is a hit or miss because we want to see if we can read from memory
+            total_Stores++;
             Store_hitOrMiss(cache, &slot, argv[4], argv[5]);
            
         }
@@ -132,24 +152,19 @@ int main(int argc , char * argv[]){
         reading next line in the file
         */
         number_of_bytes= read(0, buffer, 15); 
-         total_cycles++;
+         Total_Cycles++;
      
     }
   // print_Cache(cache);
-  int& total_Loads = return_total_Loads();
-  int& total_stores = return_total_Stores();
-  int& load_hits = return_load_Hits();
-  int& load_misses = return_load_Misses();
-  int& store_hits = return_store_Hits();
-  int& store_misses = return_store_Misses();
+
 
   cout << "Total loads: " << total_Loads << endl;
-  cout << "Total stores: " << total_stores << endl;
-  cout << "Load Hits: " << load_hits << endl;
-  cout << "Load misses: " << load_misses << endl;
-  cout << "Store hits: " << store_hits << endl;
-  cout << "Store misses: " << store_misses << endl;
-  cout << "Total cycles: " << total_cycles << endl;
+  cout << "Total stores: " << total_Stores << endl;
+  cout << "Load Hits: " << load_Hits << endl;
+  cout << "Load misses: " << load_Misses << endl;
+  cout << "Store hits: " << store_Hits << endl;
+  cout << "Store misses: " << store_Misses << endl;
+  cout << "Total cycles: " << Total_Cycles << endl;
 
     return 0;
    

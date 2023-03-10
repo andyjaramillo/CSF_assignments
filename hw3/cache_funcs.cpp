@@ -10,43 +10,6 @@ Map to check if the slot exists
 */
 std::map<uint32_t, Slot *> cache_map;
 
-int total_Loads = 0;
-
-int total_Stores = 0;
-
-int load_Hits = 0;
-
-int load_Misses = 0;
-
-int store_Hits =0;
-
-int store_Misses =0;
-
-int Total_Cycles=0;
-
-int& return_total_Loads(){
-   return total_Loads; 
-}
-int& return_total_Stores(){
-   return total_Stores; 
-}
-int& return_load_Misses(){
-   return load_Misses; 
-}
-int& return_load_Hits(){
-    return load_Hits;
-}
-int& return_store_Hits(){
-   return store_Hits; 
-}
-int& return_store_Misses(){
-   return store_Misses; 
-}
-int& return_total_cycles(){
-   return Total_Cycles; 
-}
-
-
 string convertToString(char * char_array, int size){
     string s;
     for(int i=0;i<size;i++){
@@ -106,17 +69,8 @@ void evictionFunction(Cache& ca, Slot * s){
 
 }
 
-
-
-//a store writes to the cache as well as to memory
-void write_through(Cache& ca, Slot * s){
-    // for(auto i : cache_map){
-    //     cout << i.first << " " << i.second; 
-    // }
-    // cout << endl;
-    load_Hits++;
-    total_Loads++;
-    if(isCacheFull(ca,s)==true){
+void write_no_dirty(Cache& ca , Slot * s){
+     if(isCacheFull(ca,s)==true){
         evictionFunction(ca,s);
         return;
     }
@@ -151,22 +105,32 @@ void write_through(Cache& ca, Slot * s){
         return;
     }
 
+}
+
+//a store writes to the cache as well as to memory
+void write_through(Cache& ca, Slot * s){
+    // for(auto i : cache_map){
+    //     cout << i.first << " " << i.second; 
+    // }
+    // cout << endl;
+   // load_Hits++;
+  //  total_Loads++;
+    write_no_dirty(ca, s);
     
 }
 
 //a cache miss during a store does not modify the cache
 void no_write_allocate(Cache ca, Slot * s){
-    load_Misses++;
-    total_Loads++;  
+    return;
 }
 
 void write_back(Cache ca, Slot * s){
-    load_Hits++;
-    total_Loads++;
+  //  load_Hits++;
+  //  total_Loads++;
     if(isCacheFull(ca,s)==true){
         if(s->dirty_bit==true){
             evictionFunction(ca,s);
-            total_Stores++;
+            
         }else{
             evictionFunction(ca,s);
         }
@@ -208,41 +172,6 @@ void write_back(Cache ca, Slot * s){
 }
 
 void write_allocate(Cache ca, Slot * s){
-    load_Misses++;
-    total_Loads++;
-    if(isCacheFull(ca,s)==true){
-        evictionFunction(ca,s);
-        return;
-    }
-    s->access_ts++;
-    if(cache_map.count(s->tag)){
-        Set currentSet =  ca.sets[s->index];
-        for (long unsigned i=0; i < currentSet.slots.size(); i++)
-        {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == s->tag) {
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
-                cache_map[s->tag] = s;
-                break;
-            }
-        }
-        return;
-    }else{
-        Set currentSet =  ca.sets[s->index];
-       for (long unsigned i=0; i < currentSet.slots.size(); i++)
-        {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == 0) {
-                currentSlot.tag = s->tag;
-                ca.sets[s->index].slots[i].tag = currentSlot.tag;
-                currentSlot.offset = s->offset;
-                ca.sets[s->index].slots[i].offset = currentSlot.offset;
-                cache_map.insert({s->tag, s});
-                break;
-            }
-        }
-        return;
-    }
-
+  
+    write_no_dirty(ca, s);
 }
