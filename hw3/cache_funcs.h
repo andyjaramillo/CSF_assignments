@@ -16,7 +16,7 @@ void write_through(Cache& ca, Slot * s, int timestamp);
 void no_write_allocate(Cache ca, Slot * s);
 //updates the cache only, not the memory, so the memory counter is not incremented. The dirty bit is changed to true
 //in case of eviction
-void write_back(Cache ca, Slot * s);
+void write_back(Cache ca, Slot * s, int timestamp);
 //increment the memory counter and write to cache as well
 void write_allocate(Cache ca, Slot * s);
 //slot does exist by searching
@@ -28,8 +28,8 @@ bool slotExists(Cache& ca, Slot *s);
 bool isCacheFull(Cache& ca, Slot * s);
 
 void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size);
-void write_no_dirty_hit(Cache& ca , Slot * s, int timestamp);
-void write_no_dirty_miss(Cache& ca , Slot * s);
+void write_no_dirty_through(Cache& ca , Slot * s, int timestamp);
+void write_no_dirty_allocate(Cache& ca , Slot * s, int timestamp);
 
 
 

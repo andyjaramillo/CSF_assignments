@@ -56,31 +56,56 @@ void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size){
     Set currentSet =  ca.sets[s->index];
     uint32_t min = currentSet.slots[0].access_ts;
     int index = 0;
-    for(long unsigned i=0; i< currentSet.slots.size(); i++){
+    if(s->dirty_bit == true){
+         for(long unsigned i=0; i< currentSet.slots.size(); i++){
         if(ca.sets[s->index].slots[i].tag == s->tag){
-           if(ca.sets[s->index].slots[i].dirty_bit == true){
-                ca.total_cycles += ca.byte_size_calculation;
-           }
-
+           ca.total_cycles += ca.byte_size_calculation;         //or add by 100 not sure
+           ca.sets[s->index].slots[i].tag = s->tag;
+           ca.sets[s->index].slots[i].access_ts = timestamp;
+           ca.sets[s->index].slots[i].dirty_bit = false;
         }
     }
-    
-    for(long unsigned i=1; i< currentSet.slots.size(); i++){
+    }else{
+        for(long unsigned i=1; i< currentSet.slots.size(); i++){
         if(min > currentSet.slots[i].access_ts){
             min = currentSet.slots[i].access_ts;
             index = i;
         }
+        }
+        ca.sets[s->index].slots[index].tag = s->tag;
+        ca.sets[s->index].slots[index].access_ts = timestamp;
+        ca.sets[s->index].slots[index].dirty_bit = false;
     }
-    ca.sets[s->index].slots[index].tag = s->tag;
-    ca.sets[s->index].slots[index].access_ts = timestamp;
-    ca.sets[s->index].slots[index].dirty_bit = false;
-
-
+    
 }
 
-void write_no_dirty_hit(Cache& ca , Slot * s, int timestamp){
+// void write_no_dirty_through(Cache& ca , Slot * s, int timestamp){
     
-    //s->access_ts++;
+    
+// }
+
+// void write_no_dirty_allocate(Cache& ca , Slot * s, int timestamp){
+    
+//     s->access_ts++;
+//         Set currentSet =  ca.sets[s->index];
+//        for (long unsigned i=0; i < currentSet.slots.size(); i++)
+//         {
+//             Slot currentSlot = currentSet.slots[i];
+//             if (currentSlot.tag == 0) {
+//                 currentSlot.tag = s->tag;
+//                 ca.sets[s->index].slots[i].tag = currentSlot.tag;
+//                 cache_map.insert({s->tag, s});
+//                 break;
+//             }
+//         }
+//         return;
+    
+
+// }
+
+//a store writes to the cache as well as to memory
+void write_through(Cache& ca, Slot * s, int timestamp){
+     s->access_ts++;
         Set currentSet =  ca.sets[s->index];
         for (long unsigned i=0; i < currentSet.slots.size(); i++)
         {
@@ -93,93 +118,52 @@ void write_no_dirty_hit(Cache& ca , Slot * s, int timestamp){
             }
         }
         return;
-    
-    
-
-}
-
-void write_no_dirty_miss(Cache& ca , Slot * s){
-    
-    s->access_ts++;
-        Set currentSet =  ca.sets[s->index];
-       for (long unsigned i=0; i < currentSet.slots.size(); i++)
-        {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == 0) {
-                currentSlot.tag = s->tag;
-                ca.sets[s->index].slots[i].tag = currentSlot.tag;
-                cache_map.insert({s->tag, s});
-                break;
-            }
-        }
-        return;
-    
-
-}
-
-//a store writes to the cache as well as to memory
-void write_through(Cache& ca, Slot * s, int timestamp){
-    // for(auto i : cache_map){
-    //     cout << i.first << " " << i.second; 
-    // }
-    // cout << endl;
-   // load_Hits++;
-  //  total_Loads++;
-    write_no_dirty_hit(ca, s, timestamp);
+     
     
 }
 
-//a cache miss during a store does not modify the cache
-void no_write_allocate(Cache ca, Slot * s){
-    return;
-}
+// //a cache miss during a store does not modify the cache
+// void no_write_allocate(Cache ca, Slot * s){
+//     return;
+// }
 
-void write_back(Cache ca, Slot * s){
+void write_back(Cache ca, Slot * s, int timestamp){
   //  load_Hits++;
   //  total_Loads++;
-    if(isCacheFull(ca,s)==true){
-        if(s->dirty_bit==true){
-     //       evictionFunction(ca,s);
-            
-        }else{
-       //     evictionFunction(ca,s);
-        }
-        return;
-    }
     
     s->access_ts++;
-    if(cache_map.count(s->tag)){
-        Set currentSet =  ca.sets[s->index];
-        for (long unsigned i=0; i < currentSet.slots.size(); i++)
-        {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == s->tag) {
-                ca.sets[s->index].slots[i].tag = currentSlot.tag;
-                cache_map[s->tag] = s;
-                break;
-            }
-        }
-        return;
-    }else{
+    // if(cache_map.count(s->tag)){
+    //     Set currentSet =  ca.sets[s->index];
+    //     for (long unsigned i=0; i < currentSet.slots.size(); i++)
+    //     {
+    //         Slot currentSlot = currentSet.slots[i];
+    //         if (currentSlot.tag == s->tag) {
+    //             ca.sets[s->index].slots[i].tag = currentSlot.tag;
+    //             cache_map[s->tag] = s;
+    //             break;
+    //         }
+    //     }
+    //     return;
+   
         Set currentSet =  ca.sets[s->index];
        for (long unsigned i=0; i < currentSet.slots.size(); i++)
         {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == 0) {
                 ca.sets[s->index].slots[i].tag = s->tag;
+                ca.sets[s->index].slots[i].dirty_bit = true;
                 cache_map.insert({s->tag, s});
                 break;
             }
         }
         return;
-    }
-    s->dirty_bit = true;
+    
 
 }
 
-void write_allocate(Cache ca, Slot * s){
-  
-    write_no_dirty_miss(ca, s);
-}
+// void write_allocate(Cache ca, Slot * s){
+//     //only writes to cache
+//     write_no_dirty_through(ca, s);
+// }
 
 
