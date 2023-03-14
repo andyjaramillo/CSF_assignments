@@ -4,9 +4,9 @@
 #ifndef CACHE_H
 #define CACHE_H
    struct Slot {
-        uint32_t tag;
-        uint32_t index;
-        uint32_t access_ts;
+        uint64_t tag;
+        uint64_t index;
+        uint64_t access_ts;
         bool dirty_bit;
         };
     struct Set {

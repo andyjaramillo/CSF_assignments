@@ -9,115 +9,101 @@
 #include <math.h>
 #include <cstring>
 #include <ctype.h>
+#include <sstream>
 
 using std::isdigit;
 using namespace std;
 
-uint32_t total_Loads = 0;
+uint64_t total_Loads = 0;
 
-uint32_t total_Stores = 0;
+uint64_t total_Stores = 0;
 
-uint32_t load_Hits = 0;
+uint64_t load_Hits = 0;
 
-uint32_t load_Misses = 0;
+uint64_t load_Misses = 0;
 
-uint32_t store_Hits =0;
+uint64_t store_Hits =0;
 
-uint32_t store_Misses =0;
-
-
-
-uint32_t cache_timestamp = 0;
+uint64_t store_Misses =0;
 
 
+uint64_t cache_timestamp = 0;
 
+bool is_write_through = false;
 
-    // void writeMethod(std::string parameter , Slot * slot, Cache& cache){
-    //     if(parameter.compare("write-through") == 0){
-    //         write_through(cache, slot, cache_timestamp);
-          
-    //     }else if(parameter.compare("write-allocate")  == 0){
-    //         write_allocate(cache, slot);
-    //     }else if(parameter.compare("no-write-allocate") == 0){
-    //         no_write_allocate(cache, slot);
-           
-           
-    //     }else if(parameter.compare("write-back")  == 0){
-    //         write_back(cache, slot);
-    //         if(slot->dirty_bit == true){
-    //             total_Stores++;
-    //         }
-           
-    //     }
-    // }
-    void Load_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string, int byte_size, std::string lru_or_fifo){
+bool is_write_allocate = false;
+
+bool is_lru = false;
+
+    int Load_hitOrMiss(Cache &cache, Slot * s , int byte_size, std::string lru_or_fifo){
      if(slotExists(cache, s)){
             //hit
-            load_Hits++;
+          
             cache.total_cycles++;
-             Set currentSet =  cache.sets[s->index];
+            Set currentSet =  cache.sets[s->index];
             for (long unsigned i=0; i < currentSet.slots.size(); i++)
                  {
             Slot currentSlot = currentSet.slots[i];
             if (currentSlot.tag == s->tag) {
                 cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
                 break;
-                  }
-             }
-           // writeMethod(second_string, s, cache);
+                }
+             }  
+           return 1;
         }else{
             //miss
-            load_Misses++;
+         
             cache.total_cycles += cache.byte_size_calculation;
             if(isCacheFull(cache, s) == true){
-                if(lru_or_fifo.compare("lru")){
-                    //To do 
+                if(is_lru){
+                    
                     evictionFunction(cache, s, cache_timestamp, byte_size);
                 }
-                // }else if(lru_or_fifo.compare("fifo")){
+                //  }else{
                     
-                // }
+                //  }
             }else{
                 //no eviction needed
-                 if(second_string.compare("write-through")){
-                     write_through(cache, s, cache_timestamp);
+                 if(is_write_through){
+                     write_through(cache, s, cache_timestamp, false);
                     
                  }else{
-                     write_back(cache, s, cache_timestamp);
+                     write_through(cache, s, cache_timestamp, true);
                  }
                     
             }
+            return -1;
         }
         
 }
-void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::string second_string){
-    //  int& total_store = return_total_Stores();
-     s->access_ts++;
+int Store_hitOrMiss(Cache &cache, Slot * s){
+  
+    // s->access_ts++;
      if(slotExists(cache, s)){
             //hit
-           store_Hits++;
-            if(first_string.compare("write-through")){
-                write_through(cache, s, cache_timestamp);
+     
+            if(is_write_through){
+                write_through(cache, s, cache_timestamp, false);
+                cache.total_cycles += 100;
             } else{
-                write_back(cache, s, cache_timestamp);
+                write_through(cache, s, cache_timestamp, true);
             }
             
-          
+          return 1;
         }else{
             //miss
-            store_Misses++;
-            if(first_string.compare("write_allocate")){
-                if(second_string.compare("write-through")){
-                    write_through(cache,s,cache_timestamp);
-                    cache.total_cycles += 100;
+     
+            if(is_write_allocate){
+                if(is_write_through){
+                    write_through(cache, s, cache_timestamp, false);
+                    cache.total_cycles += cache.byte_size_calculation;
                 }else{
-                    write_back(cache, s, cache_timestamp);
+                   write_through(cache, s, cache_timestamp, true);
                 }
             } else{ //write no allocate
                 cache.total_cycles += 100;
             }
-            
-          
+            return -1;
         }
         
 }
@@ -130,13 +116,14 @@ void Store_hitOrMiss(Cache& cache, Slot * s , std::string first_string , std::st
                }
                 
             }
-          //  cout << endl;
+        
         }
     }
 
 bool is_a_power_of_two(int x){
     return (x!=0) && ((x & (x - 1)) == 0);
 }
+
 bool is_an_integer(string s){
    long unsigned counter =0;
     while(counter != s.length()){
@@ -147,6 +134,7 @@ bool is_an_integer(string s){
     }
     return true;
 }
+
 int log2(int off){
     int result =0;
     while(off >>= 1){
@@ -215,74 +203,57 @@ Tests if invalid input in some way
     }
 
     Cache cache(stoi(argv[1]), stoi(argv[2]), stoi(argv[3]));
-   
-    //int number_of_bytes= read(0, buffer, 15);
-     cache_timestamp++;
+    if(strcmp(argv[5],"write-through")){
+        is_write_through = true;
+    }
+    if(strcmp(argv[4], "write-allocate") == 0){
+        is_write_allocate = true;
+    }
+    if(strcmp(argv[6], "lru") == 0){
+        is_lru = true;
+    }
+    
+    cache_timestamp++;
     string line;
+
     while(getline(cin,line)){
-       // string line_as_string = convertToString(buffer, 15);
-        vector<string> line_as_vector = to_Vector(line);
-        /*
-        line_as_vector[1] holds the hex string, which is a uint32_t value
-        */
-        long unsigned length = line_as_vector[1].length();
-        char * end;
-         char* char_array = new char[length+1];
-        string hex_string = line_as_vector[1];
-        for(long unsigned i=0; i< length; i++){
-            char_array[i] =  hex_string[i];
-        }
-        char_array[length+1] = 0;
-       // cout << char_array << endl;
-        uint64_t tag = strtol(char_array, &end, 16);
+   
+        istringstream ss(line);
+        char action;
+        string address;
+        ss >> action;
+        ss >> address;
+      
+        uint64_t tag = stol(address, 0, 16);
         tag >>= log2(stoi(argv[3]));
         uint32_t index = tag % stoi(argv[1]);
         tag >>= log2(stoi(argv[1]));
-    //     uint32_t offset_bits =  stoi(argv[3]) /4;
-    //     uint32_t bitmask= pow(2,offset_bits)-1;
-    //   //  cout << bitmask << " ";
-     
-    //     uint32_t offset = val & bitmask;
-    //     val = val >> offset_bits;
-    //     uint32_t index_shift = (3* stoi(argv[3]))/8;
-    //     bitmask = pow(2,index_shift)-1; 
-
-    //     uint32_t index = val & bitmask;
-        
-    //     val = val >> index_shift;
-    //     uint32_t tag_shift = (3* stoi(argv[3]))/8;
-    //     bitmask = pow(2, tag_shift)-1;
-       
-    //     uint32_t tag = val & bitmask;
-      
+    
         Slot slot;
         slot.tag = tag;
         slot.index = index;
-   //  cout << slot.offset << " ";
-        string action = line_as_vector[0];
-        if(action == "l"){
+
+        if(action == 'l'){
             total_Loads++;
-            Load_hitOrMiss(cache, &slot, argv[4], argv[5], stoi(argv[3]), argv[6]);
-        }else if(action == "s"){
+            if(Load_hitOrMiss(cache, &slot, stoi(argv[3]), argv[6]) == 1){
+                load_Hits++;
+            }else{
+                load_Misses++;
+            }
+        }else if(action == 's'){
             //check if it is a hit or miss because we want to see if we can read from memory
             total_Stores++;
-            Store_hitOrMiss(cache, &slot, argv[4], argv[5]);
+            if(Store_hitOrMiss(cache, &slot) == 1){
+                store_Hits++;
+            }else{
+                store_Misses++;
+            }
            
         }
-        
-       // writeMethod(argv[4], &slot, cache);
-
-      //  writeMethod(argv[5], &slot, cache);
-        
-        /*
-        reading next line in the file
-        */
-       delete char_array;
-      //  number_of_bytes= read(0, buffer, 15); 
+      
          cache_timestamp++;
      
     }
-  // print_Cache(cache);
 
   cout << "Total loads: " << total_Loads << endl;
   cout << "Total stores: " << total_Stores << endl;
