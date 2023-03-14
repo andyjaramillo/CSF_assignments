@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <vector>
 #include <stdint.h>
+#include <iostream>
 #ifndef CACHE_H
 #define CACHE_H
    struct Slot {
@@ -8,6 +9,7 @@
         uint64_t index;
         uint64_t access_ts;
         bool dirty_bit;
+        bool valid;
         };
     struct Set {
         std::vector<Slot> slots;
@@ -33,6 +35,9 @@ class Cache{
                     s.index =i;
                     s.access_ts =0;
                     s.dirty_bit = false;
+                   
+                    s.valid = false;
+                    // std::cout << s.valid << std::endl;
                     set.slots.push_back(s);
                 }
                 sets.push_back(set);

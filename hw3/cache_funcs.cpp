@@ -15,7 +15,7 @@ bool slotExists(Cache& ca, Slot *s){
    
         for (long unsigned i=0; i < ca.sets[s->index].slots.size(); i++)
         {
-            if (ca.sets[s->index].slots[i].tag == s->tag) {
+            if (ca.sets[s->index].slots[i].valid ==true && ca.sets[s->index].slots[i].tag == s->tag) {
                 return true;
             }
         }
@@ -26,7 +26,7 @@ bool isCacheFull(Cache& ca, Slot * s){
 
     Set currentSet =  ca.sets[s->index];
     for(long unsigned i=0; i < currentSet.slots.size(); i++){
-        if(currentSet.slots[i].tag == 0){
+        if(currentSet.slots[i].valid == false){
             return false;
         }
     }
@@ -38,7 +38,7 @@ void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size){
     uint32_t min = currentSet.slots[0].access_ts;
     int index = 0;
         for(long unsigned i=1; i< currentSet.slots.size(); i++){
-        if(min > currentSet.slots[i].access_ts){
+        if(min >= currentSet.slots[i].access_ts){
             min = currentSet.slots[i].access_ts;
             index = i;
         }
@@ -49,24 +49,26 @@ void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size){
         ca.sets[s->index].slots[index].tag = s->tag;
         ca.sets[s->index].slots[index].access_ts = timestamp;
         ca.sets[s->index].slots[index].dirty_bit = false;
+        ca.sets[s->index].slots[index].valid = true;
     
 }
 
 
 //a store writes to the cache as well as to memory
 void write_through(Cache &ca, Slot * s, int timestamp, bool dirty){
-     s->access_ts++;
+    // s->access_ts++;
         Set currentSet =  ca.sets[s->index];
         for (long unsigned i=0; i < currentSet.slots.size(); i++)
         {
             Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == 0) {
+            if (currentSlot.valid == false) {
                 ca.sets[s->index].slots[i].tag = s->tag;
                 ca.sets[s->index].slots[i].access_ts = timestamp;
+                ca.sets[s->index].slots[i].valid = true;
                 if(dirty){
                     ca.sets[s->index].slots[i].dirty_bit = true;
                 }
-                cache_map[s->tag] = s;
+             //   cache_map[s->tag] = s;
                 break;
             }
         }
