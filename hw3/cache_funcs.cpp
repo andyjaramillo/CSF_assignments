@@ -72,6 +72,7 @@ void write_through(Cache &ca, Slot * s, int timestamp, bool dirty){
                 break;
             }
         }
+        ca.total_cycles += ca.byte_size_calculation;
         return;
      
     

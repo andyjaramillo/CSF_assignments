@@ -44,7 +44,7 @@ bool is_lru = false;
             for (long unsigned i=0; i < currentSet.slots.size(); i++)
                  {
             Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == s->tag) {
+            if (currentSlot.tag == s->tag && currentSlot.valid == true) {
                 cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
                 break;
                 }
@@ -53,6 +53,53 @@ bool is_lru = false;
         }else{
             //miss
          
+          //  cache.total_cycles += cache.byte_size_calculation;
+            if(isCacheFull(cache, s) == true){
+                if(is_lru){
+                    
+                    evictionFunction(cache, s, cache_timestamp, byte_size);
+                }
+                //  }else{
+                    
+                //  }
+            }else{
+                //no eviction needed
+                 if(is_write_through){
+                     write_through(cache, s, cache_timestamp, false);    
+                 }else{
+                     write_through(cache, s, cache_timestamp, true);
+                 }
+                    
+            }
+            return -1;
+        }
+        
+}
+int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
+  
+    // s->access_ts++;
+     if(slotExists(cache, s)){
+            //hit
+            for(long unsigned i=0; i<cache.sets[s->index].slots.size(); i++){
+                if(cache.sets[s->index].slots[i].valid == true && cache.sets[s->index].slots[i].tag == s->tag){
+                    cache.sets[s->index].slots[i].access_ts = cache_timestamp;
+                     if(is_write_through){
+                       // write_through(cache, s, cache_timestamp, false);
+                        cache.total_cycles += cache.byte_size_calculation;
+                     } else{
+                       cache.sets[s->index].slots[i].dirty_bit = false;
+                       // write_through(cache, s, cache_timestamp, true);
+                    }
+                }
+                
+            }
+            
+          return 1;
+        }else{
+            //miss
+           
+            if(is_write_allocate){
+                
             cache.total_cycles += cache.byte_size_calculation;
             if(isCacheFull(cache, s) == true){
                 if(is_lru){
@@ -65,41 +112,13 @@ bool is_lru = false;
             }else{
                 //no eviction needed
                  if(is_write_through){
-                     write_through(cache, s, cache_timestamp, false);
-                    
+                     write_through(cache, s, cache_timestamp, false); 
+                     cache.total_cycles += 100;   
                  }else{
                      write_through(cache, s, cache_timestamp, true);
                  }
                     
             }
-            return -1;
-        }
-        
-}
-int Store_hitOrMiss(Cache &cache, Slot * s){
-  
-    // s->access_ts++;
-     if(slotExists(cache, s)){
-            //hit
-     
-            if(is_write_through){
-                write_through(cache, s, cache_timestamp, false);
-                cache.total_cycles += 100;
-            } else{
-                write_through(cache, s, cache_timestamp, true);
-            }
-            
-          return 1;
-        }else{
-            //miss
-     
-            if(is_write_allocate){
-                if(is_write_through){
-                    write_through(cache, s, cache_timestamp, false);
-                    cache.total_cycles += cache.byte_size_calculation;
-                }else{
-                   write_through(cache, s, cache_timestamp, true);
-                }
             } else{ //write no allocate
                 cache.total_cycles += 100;
             }
@@ -124,13 +143,13 @@ bool is_a_power_of_two(int x){
     return (x!=0) && ((x & (x - 1)) == 0);
 }
 
-bool is_an_integer(string s){
-   long unsigned counter =0;
-    while(counter != s.length()){
-        if(!isdigit(s[counter])){
+bool is_an_integer(char* s){
+   
+    while(*s){
+        if(!isdigit(*s)){
             return false;
         }
-        counter++;
+        s++;
     }
     return true;
 }
@@ -224,7 +243,7 @@ Tests if invalid input in some way
         ss >> action;
         ss >> address;
       
-        uint64_t tag = stol(address, 0, 16);
+        uint32_t tag = stol(address, 0, 16);
         tag >>= log2(stoi(argv[3]));
         uint32_t index = tag % stoi(argv[1]);
         tag >>= log2(stoi(argv[1]));
@@ -232,7 +251,7 @@ Tests if invalid input in some way
         Slot slot;
         slot.tag = tag;
         slot.index = index;
-
+       
         if(action == 'l'){
             total_Loads++;
             if(Load_hitOrMiss(cache, &slot, stoi(argv[3]), argv[6]) == 1){
@@ -243,7 +262,7 @@ Tests if invalid input in some way
         }else if(action == 's'){
             //check if it is a hit or miss because we want to see if we can read from memory
             total_Stores++;
-            if(Store_hitOrMiss(cache, &slot) == 1){
+            if(Store_hitOrMiss(cache, &slot, stoi(argv[3])) == 1){
                 store_Hits++;
             }else{
                 store_Misses++;
