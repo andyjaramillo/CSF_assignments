@@ -9,7 +9,7 @@
 void write_through(Cache &ca, Slot * s, int timestamp, bool dirty);
 
 //slot does exist by searching
-bool slotExists(Cache& ca, Slot *s);
+Slot * slotExists(Cache& ca, Slot *s);
 
 //determines whwat to call then whether hit or miss
 // void hitOrMiss(Cache& ca, Slot * s );

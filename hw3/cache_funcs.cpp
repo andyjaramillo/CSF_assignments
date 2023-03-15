@@ -11,7 +11,7 @@ Map to check if the slot exists
 std::map<uint32_t, Slot *> cache_map;
 
 
-bool slotExists(Cache& ca, Slot *s){
+Slot* slotExists(Cache& ca, Slot *s){
     // auto i = cache_map.find(s->tag);
     //     if(i != cache_map.end()){
     //         return true;
@@ -21,10 +21,10 @@ bool slotExists(Cache& ca, Slot *s){
         for (long unsigned i=0; i < ca.sets[s->index].slots.size(); i++)
         {
             if (ca.sets[s->index].slots[i].valid ==true && ca.sets[s->index].slots[i].tag == s->tag) {
-                return true;
+                return &ca.sets[s->index].slots[i];
             }
         }
-        return false;
+        return NULL;
 }
 
 bool isCacheFull(Cache& ca, Slot * s){

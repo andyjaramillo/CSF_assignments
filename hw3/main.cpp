@@ -36,19 +36,21 @@ bool is_write_allocate = false;
 bool is_lru = false;
 
     int Load_hitOrMiss(Cache &cache, Slot * s , int byte_size, std::string lru_or_fifo){
-     if(slotExists(cache, s)){
+        Slot * slot = slotExists(cache, s);
+     if(slot != NULL){
             //hit
           
             cache.total_cycles++;
-            Set currentSet =  cache.sets[s->index];
-            for (long unsigned i=0; i < currentSet.slots.size(); i++)
-                 {
-            Slot currentSlot = currentSet.slots[i];
-            if (currentSlot.tag == s->tag && currentSlot.valid == true) {
-                cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
-                break;
-                }
-             }  
+            slot->access_ts = cache_timestamp;
+            // Set currentSet =  cache.sets[s->index];
+            // for (long unsigned i=0; i < currentSet.slots.size(); i++)
+            //      {
+            // Slot currentSlot = currentSet.slots[i];
+            // if (currentSlot.tag == s->tag && currentSlot.valid == true) {
+            //     cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
+            //     break;
+            //     }
+            //  }  
            return 1;
         }else{
             //miss
@@ -78,7 +80,8 @@ bool is_lru = false;
 int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
   
     // s->access_ts++;
-     if(slotExists(cache, s)){
+     Slot * slot = slotExists(cache, s);
+     if(slot != NULL){
             //hit
             for(long unsigned i=0; i<cache.sets[s->index].slots.size(); i++){
              //  cache.total_cycles++;
