@@ -53,7 +53,7 @@ bool is_lru = false;
         }else{
             //miss
          
-          //  cache.total_cycles += cache.byte_size_calculation;
+            cache.total_cycles += cache.byte_size_calculation;
             if(isCacheFull(cache, s) == true){
                 if(is_lru){
                     
@@ -88,6 +88,7 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
                         cache.total_cycles += cache.byte_size_calculation;
                      } else{
                        cache.sets[s->index].slots[i].dirty_bit = false;
+                       //cache.total_cycles++;
                        // write_through(cache, s, cache_timestamp, true);
                     }
                 }
@@ -116,6 +117,7 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
                      cache.total_cycles += 100;   
                  }else{
                      write_through(cache, s, cache_timestamp, true);
+                     //cache.total_cycles += cache.byte_size_calculation;
                  }
                     
             }
@@ -203,35 +205,42 @@ Tests if invalid input in some way
         cerr << "Block size must be greater than 4" << endl;
         return 1;
     }
-    if(strcmp(argv[4],"write-allocate") !=0 && strcmp(argv[4],"no-write-allocate") != 0){
-        cerr << "4th parameter must be write-allocate or no-write-allocate" << endl;
-        return 1;
+    if(strcmp(argv[4],"write-allocate") ==0){
+       is_write_allocate = true;
     }
-    if(strcmp(argv[5],"write-through") !=0 && strcmp(argv[5],"write-back") != 0){
-        cerr << "4th parameter must be write-allocate or no-write-allocate" << endl;
-        return 1;
+    else if(strcmp(argv[4],"no-write-allocate") ==0){
+        is_write_allocate = false;
     }
-    if(strcmp(argv[6],"lru") != 0 && strcmp(argv[6],"fifo") != 0){
-        cerr << "6th parameter must have lru of fifo" << endl;
+    else{
+        cerr << "wrong 4th input" <<endl;
         return 1;
     }
     
+    if(strcmp(argv[5],"write-through") ==0){
+        is_write_through = true;
+    } else if(strcmp(argv[5],"write-back") == 0){
+        is_write_through = false;
+    } else{
+        cerr << "wrong 5th parameter" << endl;
+        return 1;
+    }
+
+    if(strcmp(argv[6],"lru") == 0){
+        is_lru = true;
+    } else if(strcmp(argv[6],"fifo") == 0){
+        is_lru = false;
+    } else{
+        cerr << "wrong type for 6th parameter" << endl;
+        return 1;
+    }
+   
     if(strcmp(argv[4],"no-write-allocate") == 0 && strcmp(argv[5],"write-back") == 0){
         cerr << "Pair of no-write-allocate and write-back is not possible" << endl;
         return 1;
     }
 
     Cache cache(stoi(argv[1]), stoi(argv[2]), stoi(argv[3]));
-    if(strcmp(argv[5],"write-through")){
-        is_write_through = true;
-    }
-    if(strcmp(argv[4], "write-allocate") == 0){
-        is_write_allocate = true;
-    }
-    if(strcmp(argv[6], "lru") == 0){
-        is_lru = true;
-    }
-    
+     
     cache_timestamp++;
     string line;
 
