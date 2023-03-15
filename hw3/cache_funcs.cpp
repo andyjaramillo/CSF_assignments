@@ -12,7 +12,12 @@ std::map<uint32_t, Slot *> cache_map;
 
 
 bool slotExists(Cache& ca, Slot *s){
-   
+    // auto i = cache_map.find(s->tag);
+    //     if(i != cache_map.end()){
+    //         return true;
+    //     }else{
+    //         return false;
+    //     }
         for (long unsigned i=0; i < ca.sets[s->index].slots.size(); i++)
         {
             if (ca.sets[s->index].slots[i].valid ==true && ca.sets[s->index].slots[i].tag == s->tag) {
@@ -50,6 +55,7 @@ void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size){
         ca.sets[s->index].slots[index].access_ts = timestamp;
         ca.sets[s->index].slots[index].dirty_bit = false;
         ca.sets[s->index].slots[index].valid = true;
+        cache_map[s->tag] = s;
     
 }
 
@@ -68,7 +74,7 @@ void write_through(Cache &ca, Slot * s, int timestamp, bool dirty){
                 if(dirty){
                     ca.sets[s->index].slots[i].dirty_bit = true;
                 }
-             //   cache_map[s->tag] = s;
+                cache_map[s->tag] = s;
                 break;
             }
         }

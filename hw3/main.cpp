@@ -81,14 +81,18 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
      if(slotExists(cache, s)){
             //hit
             for(long unsigned i=0; i<cache.sets[s->index].slots.size(); i++){
+             //  cache.total_cycles++;
                 if(cache.sets[s->index].slots[i].valid == true && cache.sets[s->index].slots[i].tag == s->tag){
                     cache.sets[s->index].slots[i].access_ts = cache_timestamp;
                      if(is_write_through){
                        // write_through(cache, s, cache_timestamp, false);
-                        cache.total_cycles += cache.byte_size_calculation;
+                       cache.total_cycles++;
+                      //  cache.total_cycles += cache.byte_size_calculation;
+                        cache.total_cycles += 100;
                      } else{
                        cache.sets[s->index].slots[i].dirty_bit = false;
-                       //cache.total_cycles++;
+                       cache.total_cycles++;
+                  
                        // write_through(cache, s, cache_timestamp, true);
                     }
                 }
@@ -101,11 +105,12 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
            
             if(is_write_allocate){
                 
-            cache.total_cycles += cache.byte_size_calculation;
+           
             if(isCacheFull(cache, s) == true){
                 if(is_lru){
                     
                     evictionFunction(cache, s, cache_timestamp, byte_size);
+                     cache.total_cycles += cache.byte_size_calculation;
                 }
                 //  }else{
                     
@@ -114,10 +119,11 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
                 //no eviction needed
                  if(is_write_through){
                      write_through(cache, s, cache_timestamp, false); 
+                     cache.total_cycles += cache.byte_size_calculation;
                      cache.total_cycles += 100;   
                  }else{
                      write_through(cache, s, cache_timestamp, true);
-                     //cache.total_cycles += cache.byte_size_calculation;
+                     cache.total_cycles += cache.byte_size_calculation;
                  }
                     
             }

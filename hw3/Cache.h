@@ -5,9 +5,9 @@
 #ifndef CACHE_H
 #define CACHE_H
    struct Slot {
-        uint64_t tag;
-        uint64_t index;
-        uint64_t access_ts;
+        long unsigned tag;
+        long unsigned index;
+        long unsigned access_ts;
         bool dirty_bit;
         bool valid;
         };
@@ -20,7 +20,7 @@ class Cache{
    int num_sets;
  int num_slots;
  int byte_size_calculation;
- int total_cycles;
+ unsigned long total_cycles;
      std::vector<Set> sets;
         Cache(int number_of_set, int number_of_blocks_in_set, int number_of_bytes_per_memory){
             num_sets = number_of_set;
