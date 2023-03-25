@@ -12,12 +12,7 @@ std::map<uint32_t, Slot *> cache_map;
 
 
 Slot* slotExists(Cache& ca, Slot *s){
-    // auto i = cache_map.find(s->tag);
-    //     if(i != cache_map.end()){
-    //         return true;
-    //     }else{
-    //         return false;
-    //     }
+  
         for (long unsigned i=0; i < ca.sets[s->index].slots.size(); i++)
         {
             if (ca.sets[s->index].slots[i].valid ==true && ca.sets[s->index].slots[i].tag == s->tag) {
@@ -31,6 +26,7 @@ bool isCacheFull(Cache& ca, Slot * s){
 
     Set currentSet =  ca.sets[s->index];
     for(long unsigned i=0; i < currentSet.slots.size(); i++){
+ 
         if(currentSet.slots[i].valid == false){
             return false;
         }
@@ -51,6 +47,7 @@ void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size){
         if(ca.sets[s->index].slots[index].dirty_bit){
              ca.total_cycles += ca.byte_size_calculation; 
         }
+        // cache.total_cycles += cache.byte_size_calculation;
         ca.sets[s->index].slots[index].tag = s->tag;
         ca.sets[s->index].slots[index].access_ts = timestamp;
         ca.sets[s->index].slots[index].dirty_bit = false;
@@ -73,12 +70,14 @@ void write_through(Cache &ca, Slot * s, int timestamp, bool dirty){
                 ca.sets[s->index].slots[i].valid = true;
                 if(dirty){
                     ca.sets[s->index].slots[i].dirty_bit = true;
+                }else{
+                     ca.sets[s->index].slots[i].dirty_bit = false;
                 }
                 cache_map[s->tag] = s;
                 break;
             }
         }
-       // ca.total_cycles += ca.byte_size_calculation;
+       
         return;
      
     

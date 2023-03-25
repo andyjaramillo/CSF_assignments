@@ -42,65 +42,49 @@ bool is_lru = false;
           
             cache.total_cycles++;
             slot->access_ts = cache_timestamp;
-            // Set currentSet =  cache.sets[s->index];
-            // for (long unsigned i=0; i < currentSet.slots.size(); i++)
-            //      {
-            // Slot currentSlot = currentSet.slots[i];
-            // if (currentSlot.tag == s->tag && currentSlot.valid == true) {
-            //     cache.sets[s->index].slots[i].access_ts = cache_timestamp;           
-            //     break;
-            //     }
-            //  }  
+         
            return 1;
         }else{
-            //miss
-         
-            cache.total_cycles += cache.byte_size_calculation;
+           
             if(isCacheFull(cache, s) == true){
                 if(is_lru){
                     
                     evictionFunction(cache, s, cache_timestamp, byte_size);
+                     cache.total_cycles += cache.byte_size_calculation;
+                    
                 }
                 //  }else{
                     
                 //  }
             }else{
                 //no eviction needed
-                 if(is_write_through){
-                     write_through(cache, s, cache_timestamp, false);    
-                 }else{
-                     write_through(cache, s, cache_timestamp, true);
+                     write_through(cache, s, cache_timestamp, false); 
+                     cache.total_cycles += cache.byte_size_calculation;
                  }
-                    
+                return -1;
             }
-            return -1;
+            
         }
         
-}
+
 int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
   
     // s->access_ts++;
      Slot * slot = slotExists(cache, s);
      if(slot != NULL){
             //hit
-            for(long unsigned i=0; i<cache.sets[s->index].slots.size(); i++){
-             //  cache.total_cycles++;
-                if(cache.sets[s->index].slots[i].valid == true && cache.sets[s->index].slots[i].tag == s->tag){
-                    cache.sets[s->index].slots[i].access_ts = cache_timestamp;
-                     if(is_write_through){
-                       // write_through(cache, s, cache_timestamp, false);
-                       cache.total_cycles++;
-                      //  cache.total_cycles += cache.byte_size_calculation;
-                        cache.total_cycles += 100;
-                     } else{
-                       cache.sets[s->index].slots[i].dirty_bit = false;
-                       cache.total_cycles++;
-                  
-                       // write_through(cache, s, cache_timestamp, true);
-                    }
-                }
-                
-            }
+    
+                        slot->access_ts = cache_timestamp;
+                        if(is_write_through){
+                            slot->dirty_bit = false;
+                             cache.total_cycles += 100;
+                             cache.total_cycles++;
+                        }else{
+                            slot->dirty_bit = true;
+                            cache.total_cycles++;
+                          
+                        }
+         
             
           return 1;
         }else{
