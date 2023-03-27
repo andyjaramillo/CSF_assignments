@@ -42,29 +42,23 @@ bool is_lru = false;
           
             cache.total_cycles++;
             slot->access_ts = cache_timestamp;
-         
+           // update_load_ts(cache, s);
            return 1;
         }else{
            
             if(isCacheFull(cache, s) == true){
-                if(is_lru){
-                    
-                    evictionFunction(cache, s, cache_timestamp, byte_size);
+                    evictionFunction(cache, s, cache_timestamp, byte_size, is_lru);
                      cache.total_cycles += cache.byte_size_calculation;
-                    
-                }
-                //  }else{
-                    
-                //  }
             }else{
                 //no eviction needed
-                     write_through(cache, s, cache_timestamp, false); 
+                    update_load_ts(cache, s); 
+                     write_through(cache, s, cache_timestamp, false);
                      cache.total_cycles += cache.byte_size_calculation;
                  }
                 return -1;
-            }
-            
+
         }
+    }
         
 
 int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
@@ -84,7 +78,7 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
                             cache.total_cycles++;
                           
                         }
-         
+                     //   update_load_ts(cache, s); 
             
           return 1;
         }else{
@@ -94,23 +88,21 @@ int Store_hitOrMiss(Cache &cache, Slot * s, int byte_size){
                 
            
             if(isCacheFull(cache, s) == true){
-                if(is_lru){
-                    
-                    evictionFunction(cache, s, cache_timestamp, byte_size);
+                    evictionFunction(cache, s, cache_timestamp, byte_size, is_lru);
                      cache.total_cycles += cache.byte_size_calculation;
-                }
-                //  }else{
-                    
-                //  }
             }else{
                 //no eviction needed
                  if(is_write_through){
+                     update_load_ts(cache, s);
                      write_through(cache, s, cache_timestamp, false); 
                      cache.total_cycles += cache.byte_size_calculation;
                      cache.total_cycles += 100;   
+                     
                  }else{
+                    update_load_ts(cache, s);
                      write_through(cache, s, cache_timestamp, true);
                      cache.total_cycles += cache.byte_size_calculation;
+                    
                  }
                     
             }

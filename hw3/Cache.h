@@ -8,6 +8,7 @@
         long unsigned tag;
         long unsigned index;
         long unsigned access_ts;
+        long unsigned load_ts;
         bool dirty_bit;
         bool valid;
         };
@@ -34,6 +35,7 @@ class Cache{
                     s.tag = 0;
                     s.index =i;
                     s.access_ts =0;
+                    s.load_ts =0;
                     s.dirty_bit = false;
                    
                     s.valid = false;

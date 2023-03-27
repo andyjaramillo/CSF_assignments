@@ -16,7 +16,10 @@ Slot * slotExists(Cache& ca, Slot *s);
 //checks if cache is full
 bool isCacheFull(Cache& ca, Slot * s);
 
-void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size);
+bool isCacheEmpty(Cache& ca, Slot * s);
 
+void evictionFunction(Cache& ca, Slot * s, int timestamp, int byte_size, bool lru_or_fifo);
+
+void update_load_ts(Cache& ca, Slot * s);
 
 #endif
