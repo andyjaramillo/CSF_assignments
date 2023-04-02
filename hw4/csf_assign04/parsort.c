@@ -10,14 +10,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-int compare_i64(long int * left, long int * right){
-  if(left == right){
-    return 0;
-  } else if(left < right){
-    return -1;
-  } else{
-    return 1;
+static int compare_i64(const void *left, const void *right){
+ int64_t l = *(int64_t*) left;
+ int64_t r = *(int64_t*) right;
+ 
+ if(l < r){
+  return -1;
+  } 
+  if(l > r){
+  return 1;
+  }else {
+      return 0;
   }
+
+
 }
 
 
@@ -50,12 +56,33 @@ void merge(int64_t *arr, size_t begin, size_t mid, size_t end, int64_t *temparr)
 
 
 void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
-  if(begin < end){
-    int mid = begin + (end - begin) / 2;
+    assert(end >= begin);
+    unsigned num_elements = end - begin;
+
+    if(num_elements <= threshold){
+      qsort(arr+begin, num_elements, sizeof(int64_t),compare_i64);
+      return;
+    }
+
+    if (num_elements < 2) {
+    // a sequence of length 0 or 1 is trivially already sorted
+       return;
+    }
+
+
+    size_t mid = begin + (end - begin) / 2;
     merge_sort(arr, begin, mid, threshold);
-    merge_sort(arr, mid + 1, end, threshold);
-    merge(arr, begin, mid, end, arr);
-  }
+    merge_sort(arr, mid, end, threshold);
+
+    int64_t *temparr = (int64_t*) malloc(num_elements * sizeof(int64_t));
+
+    merge(arr, begin, mid, end, temparr);
+
+    for(int i =0; i<num_elements; i++){
+      arr[begin+i] = temparr[i];
+    }
+    free(temparr);
+  
 }
 
 int main(int argc, char **argv) {
