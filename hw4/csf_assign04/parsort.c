@@ -68,13 +68,35 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     // a sequence of length 0 or 1 is trivially already sorted
        return;
     }
-
-
+    pid_t pid = fork();
     size_t mid = begin + (end - begin) / 2;
-    merge_sort(arr, begin, mid, threshold);
-    merge_sort(arr, mid, end, threshold);
-
+    if (pid == -1) {
+      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+      exit(1);
+    } else if (pid == 0) {
+    // this is now in the child process
+     merge_sort(arr, begin, mid, threshold);
+     exit(0);
+     //add some return
+    }else{
+     merge_sort(arr, mid, end, threshold);
+     exit(0);
+    }
+    
     int64_t *temparr = (int64_t*) malloc(num_elements * sizeof(int64_t));
+    int wstatus;
+// blocks until the process indentified by pid_to_wait_for completes
+    pid_t actual_pid = waitpid(pid, &wstatus, 0);
+    if (actual_pid == -1) {
+      if (!WIFEXITED(wstatus)) {
+      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+      exit(1);
+      }
+    if (WEXITSTATUS(wstatus) != 0) {
+      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+      exit(1);
+      }
+    }
 
     merge(arr, begin, mid, end, temparr);
 
@@ -84,6 +106,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     free(temparr);
   
 }
+
 
 int main(int argc, char **argv) {
   // check for correct number of command line arguments
