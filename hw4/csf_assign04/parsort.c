@@ -70,39 +70,54 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     }
     pid_t pid = fork();
     size_t mid = begin + (end - begin) / 2;
-    if (pid == -1) {
-      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-      exit(1);
-    } else if (pid == 0) {
+   if (pid == -1) {
+     fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+     return ;
+   } else if (pid == 0) {
     // this is now in the child process
      merge_sort(arr, begin, mid, threshold);
      exit(0);
+  // return;
      //add some return
     }else{
      merge_sort(arr, mid, end, threshold);
-     exit(0);
+  //  exit(0);
+   //return;
     }
     
     int64_t *temparr = (int64_t*) malloc(num_elements * sizeof(int64_t));
-    int wstatus;
-// blocks until the process indentified by pid_to_wait_for completes
-    pid_t actual_pid = waitpid(pid, &wstatus, 0);
-    if (actual_pid == -1) {
-      if (!WIFEXITED(wstatus)) {
-      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-      exit(1);
-      }
-    if (WEXITSTATUS(wstatus) != 0) {
-      fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-      exit(1);
-      }
-    }
+//     int wstatus;
+// // blocks until the process indentified by pid_to_wait_for completes
+//     pid_t actual_pid = waitpid(pid, &wstatus, 0);
+//     if (actual_pid == -1) {
+//       if (!WIFEXITED(wstatus)) {
+//       fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+//       exit(1);
+//       }
+//     if (WEXITSTATUS(wstatus) != 0) {
+//       fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
+//       exit(1);
+//       }
+//     }
 
     merge(arr, begin, mid, end, temparr);
 
+    // int64_t *tmp = temparr;
+    // int64_t *arr_tmp = arr;
+    //    while(*tmp != sizeof(temparr))
+    // {
+    //     arr_tmp = tmp;
+    //     arr_tmp++;
+    //     tmp++;
+    // }
+
+    
     for(int i =0; i<num_elements; i++){
-      arr[begin+i] = temparr[i];
+      arr[i+begin] = temparr[i];
     }
+    
+    // looping till the null character is encountered
+
     free(temparr);
   
 }
@@ -149,7 +164,12 @@ int64_t *data = mmap(NULL, file_size_in_bytes, PROT_READ | PROT_WRITE, MAP_SHARE
 // reference to the file and all open fds will gets duplicated to the children, which will
 // cause fd in-use-at-exit leaks.
 // TODO: call close()
-
+// int64_t *curr = data;
+//    while(*curr != '\0')
+//     {
+//         printf("%ln", curr);
+//         curr++;
+//     }
 if (data == MAP_FAILED) {
    fprintf(stderr, "unable to map using mmap");
    return 1;
