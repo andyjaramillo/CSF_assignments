@@ -71,8 +71,8 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     pid_t pid = fork();
     size_t mid = begin + (end - begin) / 2;
    if (pid == -1) {
-     fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-     return ;
+     fprintf(stderr, "Error: failure to create a child process using fork\n");
+     exit(1);
    } else if (pid == 0) {
     // this is now in the child process
      merge_sort(arr, begin, mid, threshold);
@@ -86,32 +86,24 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
     }
     
     int64_t *temparr = (int64_t*) malloc(num_elements * sizeof(int64_t));
-//     int wstatus;
-// // blocks until the process indentified by pid_to_wait_for completes
-//     pid_t actual_pid = waitpid(pid, &wstatus, 0);
-//     if (actual_pid == -1) {
-//       if (!WIFEXITED(wstatus)) {
-//       fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-//       exit(1);
-//       }
-//     if (WEXITSTATUS(wstatus) != 0) {
-//       fprintf(stderr, "Usage: <filename> <sequential threshold>\n");
-//       exit(1);
-//       }
-//     }
+    int wstatus;
+// blocks until the process indentified by pid_to_wait_for completes
+    pid_t actual_pid = waitpid(pid, &wstatus, 0);
+    if (actual_pid == -1) {
+      fprintf(stderr, "Error: child process not exiting normally, or exiting with a non-zero exit code\n");
+      exit(1);
+    }
+      if (!WIFEXITED(wstatus)) {
+      fprintf(stderr, "Error: child process not exiting normally, or exiting with a non-zero exit code\n");
+      exit(1);
+      }
+    if (WEXITSTATUS(wstatus) != 0) {
+      fprintf(stderr, "Error: child process not exiting normally, or exiting with a non-zero exit code\n");
+      exit(1);
+      }
 
     merge(arr, begin, mid, end, temparr);
 
-    // int64_t *tmp = temparr;
-    // int64_t *arr_tmp = arr;
-    //    while(*tmp != sizeof(temparr))
-    // {
-    //     arr_tmp = tmp;
-    //     arr_tmp++;
-    //     tmp++;
-    // }
-
-    
     for(int i =0; i<num_elements; i++){
       arr[i+begin] = temparr[i];
     }
@@ -145,7 +137,7 @@ int main(int argc, char **argv) {
   // TODO: use fstat to determine the size of the file
   int fd = open(filename, O_RDWR);
 if (fd < 0) {
-  fprintf(stderr, "Unsupported file");
+  fprintf(stderr, "Error: failure to open the file with the integers to be sorted");
   return 1;
 }
 
@@ -154,7 +146,7 @@ if (fd < 0) {
 struct stat statbuf;
 int rc = fstat(fd, &statbuf);
 if (rc != 0) {
-   fprintf(stderr, "unable to get file information");
+   fprintf(stderr, "Error: unable to get file information");
    return 1;
 }
 size_t file_size_in_bytes = statbuf.st_size;
@@ -171,7 +163,7 @@ int64_t *data = mmap(NULL, file_size_in_bytes, PROT_READ | PROT_WRITE, MAP_SHARE
 //         curr++;
 //     }
 if (data == MAP_FAILED) {
-   fprintf(stderr, "unable to map using mmap");
+   fprintf(stderr, "Error: unable to map using mmap");
    return 1;
 }
 // *data now behaves like a standard array of int64_t. Be careful though! Going off the end
@@ -183,12 +175,12 @@ if (data == MAP_FAILED) {
     int ummap = munmap(data, file_size_in_bytes);
 
     if(ummap != 0){
-      fprintf(stderr, "unable to unmap with munmap");
+      fprintf(stderr, "Error: unable to unmap with munmap");
    return 1;
     }
     int closed = close(fd);
     if(closed != 0){
-      fprintf(stderr, "unable to close the file");
+      fprintf(stderr, "Error: unable to close the file");
       return 1;
     }
 
