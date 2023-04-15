@@ -20,6 +20,22 @@ struct Message {
     : tag(tag), data(data) { }
 
   // TODO: you could add helper functions
+
+  const std::string returnTag() const {
+    return this->tag;
+  }
+  const std::string returnData() const {
+    return this->data;
+  }
+
+  const char* messageToBuffer() const {
+    const std::string tag = this->returnTag();
+    const std::string data = this->returnData();
+    const std::string total_message = tag + data;
+    const char* message_c_string = total_message.c_str();
+    return message_c_string;
+  }
+
 };
 
 // standard message tags (note that you don't need to worry about
