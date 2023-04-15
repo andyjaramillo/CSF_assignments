@@ -31,9 +31,19 @@ struct Message {
   const char* messageToBuffer() const {
     const std::string tag = this->returnTag();
     const std::string data = this->returnData();
-    const std::string total_message = tag + data;
+    const std::string total_message = tag + ":" + data;
     const char* message_c_string = total_message.c_str();
     return message_c_string;
+  }
+
+  Message* bufferToMessage(char *buf) {
+    std::string str(buf);
+    size_t colonSeperator = str.find(':');
+    const std::string tag = str.substr(0 , colonSeperator);
+    const std::string data = str.substr(colonSeperator+1);
+
+    Message *mes = new Message(tag, data);
+    return mes;
   }
 
 };
