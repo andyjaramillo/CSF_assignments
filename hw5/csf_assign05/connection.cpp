@@ -54,8 +54,11 @@ bool Connection::send(const Message &msg) {
   // TODO: send a message
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-  const char* message_c_string = msg.messageToBuffer();
-  int returnCode = rio_writen(m_fd, message_c_string, strlen(message_c_string));
+  std::string tag = msg.tag;
+  std::string data = msg.data;
+  std::string total = tag + ":" + data + "\n";
+  const char* message_c_string = total.c_str();
+  int returnCode = rio_writen(m_fd, message_c_string, total.length());
   if (returnCode < 0) {
     return false;
   } 

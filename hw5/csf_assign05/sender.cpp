@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
    connection->send(*msg);
   // TODO: loop reading commands from user, sending messages to
     while (connection->is_open()) {  
-      Message* sendOut = new Message();
+      Message* sendOut;
       std::string input;
       getline(std::cin, input);
      // 
@@ -75,29 +75,35 @@ int main(int argc, char **argv) {
     
       
       if (input.find("/join") != std::string::npos) {
-        sendOut->tag = TAG_JOIN;
-        sendOut->data = info;
-        printf("%s ", substring.c_str());
+        sendOut = new Message(TAG_JOIN, info);
+     //   sendOut->tag = TAG_JOIN;
+    //    sendOut->data = info;
+       
         // sendOut = new Message(substring, info);
       } else if (input.find("/leave") != std::string::npos) {
-        sendOut->tag = TAG_LEAVE;
-        sendOut->data = info;
+        sendOut = new Message(TAG_LEAVE, "");
+   //     sendOut->tag = TAG_LEAVE;
+ //       sendOut->data = info;
         // sendOut = new Message(substring, info);
-      } else if (input.find("/quit") != std::string::npos) {
+      } else if (input == "/quit") {
           //close(fd); // close server socket
-          sendOut->tag = TAG_QUIT;
+          sendOut = new Message(TAG_QUIT, "bye");
+         //  printf("%s", input.c_str());
+         // sendOut->tag = TAG_QUIT;
           connection->send(*sendOut);
           Message* error = new Message();
           connection->receive(*error);
+         
         if (error->tag == TAG_ERR) {
           std::cerr << error->data;
           continue;
         }
           break;
       } else {
-         sendOut->tag = TAG_SENDALL;
-         sendOut->data = input;
-         
+          sendOut = new Message(TAG_SENDALL, input);
+        // sendOut->tag = TAG_SENDALL;
+       //  sendOut->data = input;
+       //   printf("%s",sendOut->data.c_str());
           // sendOut = new Message(substring, input);
       }
         
