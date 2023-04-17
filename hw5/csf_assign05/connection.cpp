@@ -5,6 +5,7 @@
 #include "message.h"
 #include "connection.h"
 #include <unistd.h>
+
 Connection::Connection()
   : m_fd(-1)
   , m_last_result(SUCCESS) {
@@ -23,11 +24,11 @@ void Connection::connect(const std::string &hostname, int port) {
   const char* hostname_c_str = hostname.c_str();
   std::string port_string = std::to_string(port);
   const char* port_c_str = port_string.c_str();
-  int clientfd = open_clientfd(hostname_c_str, port_c_str);
-  if (clientfd) {
+  m_fd = open_clientfd(hostname_c_str, port_c_str);
+  if (m_fd < 0) {
     m_last_result = Result(EOF_OR_ERROR);
   }
-  rio_readinitb(&m_fdbuf, clientfd);
+  rio_readinitb(&m_fdbuf, m_fd);
   
 }
 
@@ -73,7 +74,16 @@ bool Connection::receive(Message &msg) {
     m_last_result = Result(EOF_OR_ERROR);
   return false;// error reading data from client
   } else {
+    //  std::string s(buf);
+    // std::stringstream ss(s);
+    // std::string tag;
+    // std::string data;
+    // getline(ss, tag, ':');
+    // getline(ss, data);
+    // Message *mes = new Message(tag, data);
+ //   return mes;
     msg = *(msg.bufferToMessage(buf));
+
     return true;
   }
 }
