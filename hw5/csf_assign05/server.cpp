@@ -19,7 +19,7 @@
 
 // TODO: add any additional data types that might be helpful
 //       for implementing the Server member functions
-
+  pthread_mutexattr_t mattr;
 ////////////////////////////////////////////////////////////////////////
 // Client thread functions
 ////////////////////////////////////////////////////////////////////////
@@ -54,15 +54,21 @@ Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
   // TODO: initialize mutex
+  m_lock = PTHREAD_MUTEX_INITIALIZER;
+
+  int ret;
+  ret = pthread_mutex_init(&m_lock, &mattr); 
 }
 
 Server::~Server() {
   // TODO: destroy mutex
+  pthread_mutex_destroy(&m_lock);
 }
 
 bool Server::listen() {
   // TODO: use open_listenfd to create the server socket, return true
   //       if successful, false if not
+     int m_fd = open_clientfd(hostname_c_str, port_c_str);
   return false;
 }
 

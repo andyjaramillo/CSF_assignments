@@ -3,11 +3,19 @@
 #include "message_queue.h"
 
 MessageQueue::MessageQueue() {
-  // TODO: initialize the mutex and the semaphore
+  // TODO: initialize the mutex and the semaphore 
+  m_lock = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutexattr_t mattr;
+  int ret;
+  ret = pthread_mutex_init(&m_lock, &mattr);  
+  //use the return value for error processing
+  sem_init(&m_avail, 0, 1);
 }
 
 MessageQueue::~MessageQueue() {
   // TODO: destroy the mutex and the semaphore
+  sem_destroy(&m_avail);
+
 }
 
 void MessageQueue::enqueue(Message *msg) {
