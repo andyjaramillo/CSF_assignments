@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
       break;
     } else {
       sendOut = new Message(TAG_SENDALL, input);
-      }
+    }
     connection->send(*sendOut);
     Message* response = new Message();
     connection->receive(*response);
