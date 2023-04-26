@@ -7,6 +7,10 @@
 Room::Room(const std::string &room_name)
   : room_name(room_name) {
   // TODO: initialize the mutex
+  lock = PTHREAD_MUTEX_INITIALIZER;
+  int ret;
+  pthread_mutexattr_t mattr;
+  ret = pthread_mutex_init(&lock, &mattr);
 }
 
 Room::~Room() {
