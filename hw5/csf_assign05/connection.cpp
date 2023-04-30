@@ -65,8 +65,8 @@ bool Connection::receive(Message &msg) {
     m_last_result = Result(EOF_OR_ERROR);
     return false;
   } else {
-    msg = *(msg.bufferToMessage(buf));
+    msg = (msg.bufferToMessage(buf));
     return true;
-  }
+  } 
 }
 

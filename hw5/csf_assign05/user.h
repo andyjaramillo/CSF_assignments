@@ -11,6 +11,10 @@ struct User {
   MessageQueue mqueue;
 
   User(const std::string &username) : username(username) { }
+
+  //says what room this user is in
+  std::string room_name;
+  bool isReciever;
 };
 
 #endif // USER_H

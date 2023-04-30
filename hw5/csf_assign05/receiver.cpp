@@ -7,20 +7,7 @@
 #include "connection.h"
 #include "client_util.h"
 #include <fstream>
-int create_server_socket(int port) {
-  struct sockaddr_in serveraddr = {0};
-  int ssock_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (ssock_fd < 0)
-    return -1;
 
-  serveraddr.sin_family = AF_INET;
-  serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serveraddr.sin_port = htons((unsigned short)port);
-  
-  if (bind(ssock_fd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) return -1;
-  if (listen(ssock_fd, 5) < 0) return -1;
-  return ssock_fd;
-}
 
 int main(int argc, char **argv) {
   if (argc != 5) {
@@ -33,23 +20,19 @@ int main(int argc, char **argv) {
   std::string username = argv[3];
   std::string room_name = argv[4];
   
-  std::string output;
-  output = "receiver_test-received.out";
-  std::ofstream ofs;
-  ofs.open(output);
-   
+
   Connection* conn;
 
   conn = new Connection();
   conn->connect(server_hostname,server_port);
-  const Message* msg = new Message("rlogin", username);
-  ofs << msg->tag << ":" << msg->data << std::endl;
+  const Message msg =  Message("rlogin", username);
 
-  conn->send(*msg);
-  const Message* msg2 = new Message("join", room_name);
-  conn->send(*msg2);
-  ofs << msg2->tag << ":" << msg2->data;
-  ofs.close();
+
+  conn->send(msg);
+  const Message msg2 =  Message("join", room_name);
+  conn->send(msg2);
+
+
 
   int keep_going = 1;
   
@@ -58,7 +41,7 @@ int main(int argc, char **argv) {
     Message* incoming = new Message();
     bool client_fd = conn->receive(*incoming);
      
-    if (incoming->tag != TAG_OK) {
+    if (incoming->tag == TAG_DELIVERY) {
       ssize_t first = incoming->data.find(":");
       ssize_t second = incoming->data.find(":", first+1);
       incoming->tag = incoming->data.substr(first+1, second-first-1);

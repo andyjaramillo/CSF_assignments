@@ -35,26 +35,7 @@ struct Message {
     return message_c_string;
   }
 
-  Message* bufferToMessage(char *buf) {
-    // std::string s(buf);
-    // std::stringstream ss(s);
-    // std::vector<std::string> res;
-    // std::string token;
-    
-    // while (getline(ss, token, ':')) {
-    //   res.push_back(token);
-    // }
-    // if (res[0] == "ok") {
-    //   const std::string tag;
-    //   const std::string data;
-    //   Message *mes = new Message(tag, data);
-    //   return mes;
-    // }
-    
-    // const std::string tag = res[2];
-    // const std::string data = res[3];
-    // Message *mes = new Message(tag, data);
-    // return mes;
+  Message bufferToMessage(char *buf) {
 
     std::string str(buf);
     size_t colonSeperator = str.find(':');
@@ -62,7 +43,7 @@ struct Message {
     const std::string tag = str.substr(0 , colonSeperator);
     const std::string data = str.substr(colonSeperator+1, str.length()-1);
 
-    Message *mes = new Message(tag, data);
+    Message mes =  Message(tag, data);
     return mes;
   }
 
